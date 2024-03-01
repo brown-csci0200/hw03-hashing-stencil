@@ -1,7 +1,6 @@
 package sol;
 
 import src.IDictionary;
-import src.IGrep;
 import src.KeyAlreadyExistsException;
 import src.KeyNotFoundException;
 
@@ -22,12 +21,6 @@ public class AutograderCompatibility {
      * @param args the arguments given to the program
      */
     public static void main(String[] args) throws KeyAlreadyExistsException, KeyNotFoundException {
-//        //-----------------------------
-//        //  Grep
-//        //-----------------------------
-//        IGrep grep = new Grep("grep-test-files/ozymandias.txt");
-//        Set<Integer> wordCount = grep.lookup("traveller");
-//
 //        //-----------------------------
 //        //  Chaining
 //        //-----------------------------
