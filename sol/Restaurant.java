@@ -39,7 +39,7 @@ public class Restaurant {
         if (other instanceof Restaurant) {
             Restaurant otherR = ((Restaurant) other);
             return this.name.equals(otherR.name) &&
-                    this.address.equals(otherR.name);
+                    this.address.equals(otherR.address);
         } else return false;
     }
 
