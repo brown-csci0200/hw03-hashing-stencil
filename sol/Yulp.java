@@ -1,30 +1,31 @@
 package sol;
 
-import java.util.LinkedList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 /**
  * A class that represents Yulp, a restaurant review system.
  */
 public class Yulp {
     // map usernames to member objects
-    HashMap<String, Member> allMembers;
+    public HashMap<String, Member> allMembers;
+
     // collection of all restaurants
-    HashSet<Restaurant> allRestaurants;
-    // map tag to list of restaurants with that tag
-    HashMap<String, LinkedList<Restaurant>> tagData;
+    public HashMap<String, Restaurant> allRestaurants;
+
+    // map tag to set of restaurants with that tag
+    public HashMap<String, LinkedList<Restaurant>> tagData;
+
     // map each restaurant to a map from tags to the history of modifications to the tag
-    HashMap<Restaurant, HashMap<String, LinkedList<String>>> taghistory;
+    public HashMap<Restaurant, HashMap<String, LinkedList<String>>> tagHistory;
 
     /**
      * Constructor for Yulp.
      */
     public Yulp() {
         this.allMembers = new HashMap<String, Member>();
-        this.allRestaurants = new HashSet<Restaurant>();
+        this.allRestaurants = new HashMap<String, Restaurant>();
         this.tagData = new HashMap<String, LinkedList<Restaurant>>();
-        this.taghistory = new HashMap<Restaurant, HashMap<String, LinkedList<String>>>();
+        this.tagHistory = new HashMap<Restaurant, HashMap<String, LinkedList<String>>>();
     }
 
     /**
@@ -35,26 +36,26 @@ public class Yulp {
      * @param tags : an array of the tags to put on the restaurant
      */
     public Restaurant addRestaurant(String name, String address, String[] tags) {
-        int index;
 
-        // create the object
+        // Create the object, add it to map of all Restaurants
         Restaurant r = new Restaurant(name, address, tags);
-        this.allRestaurants.add(r);
-        // initialize the tag history
+        this.allRestaurants.put(name, r);
+
+        // Initialize the tag history
         HashMap<String, LinkedList<String>> history = new HashMap<String,LinkedList<String>>();
-        this.taghistory.put(r, history);
-        for(index=0; index < tags.length; index++) {
+        this.tagHistory.put(r, history);
+
+        for (String tag : tags) {
             // put the restaurant in the search data
-            LinkedList<Restaurant> tagList = this.tagData.get(tags[index]);
+            LinkedList<Restaurant> tagList = this.tagData.get(tag);
             if (tagList == null) {
                 tagList = new LinkedList<Restaurant>();
-                this.tagData.put(tags[index], tagList);
+                this.tagData.put(tag, tagList);
             }
             tagList.add(r);
-            // enter tag history
-            LinkedList<String> historyComments = new LinkedList<String>();
-            historyComments.add("initial tag on creation");
-            history.put(tags[index], historyComments);
+
+            // Add entry to the history for this tag
+            this.addToTagHistory(r, tag, "Added when Restaurant created");
         }
         return r;
     }
@@ -65,9 +66,11 @@ public class Yulp {
      * @param username : the username for the new Member
      */
     public void addMember(String username) {
-        if (this.allMembers.containsKey(username))
-            throw new RuntimeException();
-        else { this.allMembers.put(username, new Member(username)); }
+        if (this.allMembers.containsKey(username)) {
+            throw new RuntimeException("User " + username + " already exists");
+        } else {
+            this.allMembers.put(username, new Member(username));
+        }
     }
 
     /**
@@ -80,9 +83,12 @@ public class Yulp {
      */
     public void addReview(Restaurant toR, int stars, String comment, String byUsername) {
         Review newReview = new Review(stars, comment, byUsername);
+
         Member m = this.allMembers.get(byUsername);
-        if (m == null)
+        if (m == null) {
             throw new IllegalArgumentException("unknown username " + byUsername);
+        }
+
         m.addReview(newReview);
         toR.addReview(newReview);
     }
@@ -93,12 +99,15 @@ public class Yulp {
      * @param tag : the tag for which to get matching restaurants
      * @return : the list of Restaurants with the given tag
      */
-    public LinkedList<Restaurant> lookupByTag(String tag) {
-        LinkedList<Restaurant> matches = this.tagData.get(tag);
-        if (matches == null)
-            return new LinkedList<Restaurant>();
-        else
-            return matches;
+    public HashSet<Restaurant> lookupByTag(String tag) {
+        HashSet<Restaurant> matches = new HashSet<Restaurant>();
+
+        LinkedList<Restaurant> searchResults = this.tagData.get(tag);
+        if (searchResults != null) {
+            matches.addAll(searchResults);
+        }
+
+        return matches;
     }
 
     /**
@@ -107,10 +116,23 @@ public class Yulp {
      * @param tag : the tag to add
      * @param toRestaurant : the Restaurant to which to add the tag
      * @param byUser : username of Member making the addition
-     * @param justification : the Member's justification for adding the tag
+     * @param reason : the Member's reason for adding the tag
      */
-    public void addTag(String tag, Restaurant toRestaurant, String byUser, String justification) {
-        // your implementation here
+    public void addTag(String tag, Restaurant toRestaurant, String byUser, String reason) {
+        if (!this.allRestaurants.containsKey(toRestaurant.name)) {
+            throw new IllegalArgumentException("Unknown restaurant " + toRestaurant);
+        }
+
+        if (!this.tagData.containsKey(tag)) {
+            this.tagData.put(tag, new LinkedList<>());
+        }
+
+        this.tagData.get(tag).add(toRestaurant);
+        toRestaurant.addTag(tag);
+
+        addToTagHistory(toRestaurant, tag, "User " + byUser +
+                " added tag " + tag +
+                ", Reason: " + reason);
     }
 
     /**
@@ -118,10 +140,46 @@ public class Yulp {
      * @param tag : the tag to remove
      * @param toRestaurant : the Restaurant from which to remove the tag
      * @param byUser : username of Member making the removal
-     * @param justification : the Member's justification for removing the tag
+     * @param reason : the Member's reason for removing the tag
      */
-    public void remTag(String tag, Restaurant toRestaurant, String byUser, String justification) {
-        // your implementation here
+    public void removeTag(String tag, Restaurant toRestaurant, String byUser, String reason) {
+        if (!this.allRestaurants.containsKey(toRestaurant.name)) {
+            throw new IllegalArgumentException("Unknown restaurant " + toRestaurant);
+        }
+
+        toRestaurant.removeTag(tag);
+
+        if (this.tagData.containsKey(tag)) {
+            this.tagData.get(tag).remove(toRestaurant);
+        }
+
+        addToTagHistory(toRestaurant, tag, "User " + byUser +
+                " removed tag " + tag +
+                ", Reason: " + reason);
+    }
+
+
+    /**
+     * Private helper for updating the tag history
+     * @param r Restaurant affected by tag update
+     * @param tag The tag being updated
+     * @param comment Comment from author on the change that was made
+     */
+    private void addToTagHistory(Restaurant r, String tag, String comment) {
+        // Get per-tag history for this restaurant
+        HashMap<String, LinkedList<String>> historyThisRestaurant = this.tagHistory.get(r);
+
+        if (historyThisRestaurant == null) {
+            throw new IllegalArgumentException("Restaurant " + r.name + " not found in tag history");
+        }
+
+        // If there's no list of comments for this tag yet, add a list for it
+        if (!historyThisRestaurant.containsKey(tag)) {
+            historyThisRestaurant.put(tag, new LinkedList<String>());
+        }
+
+        // Add a comment for this tag
+        historyThisRestaurant.get(tag).addLast(comment);
     }
 
     /**

@@ -15,11 +15,16 @@ public class Review {
      * @param byUsername - author of review
      */
     public Review(int numStars, String content, String byUsername) {
-        if (numStars >=0 && numStars <= 5)
+        if (numStars >=0 && numStars <= 5) {
             this.numStars = numStars;
-        else throw new IllegalArgumentException("stars must be from 0 to 5");
+        }
+        else {
+            throw new IllegalArgumentException("stars must be from 0 to 5");
+        }
         this.content = content;
         this.byUsername = byUsername;
     }
+
+
 }
 

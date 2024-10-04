@@ -1,5 +1,6 @@
 package sol;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Arrays;
 
@@ -10,7 +11,7 @@ public class Restaurant {
     String name;
     String address;
     LinkedList<Review> reviews;
-    LinkedList<String> tags;
+    HashSet<String> tags;
 
     /**
      * Constructor for Restaurant
@@ -22,16 +23,41 @@ public class Restaurant {
         this.name = name;
         this.address = address;
         this.reviews = new LinkedList<Review>();
-        this.tags = new LinkedList<String>(Arrays.asList(tags));
+        this.tags = new HashSet<String>(Arrays.asList(tags));
     }
 
     /**
      * Adds a review to this restaurant
      *
-     * @param r: the review to add
+     * @param r the review to add
      */
     public void addReview(Review r) {
         this.reviews.add(r);
+    }
+
+    /**
+     * Add a tag to this restaurant.
+     * No effect if this restaurant already has the tag
+     * @param tag  The tag to add
+     */
+    public void addTag(String tag) {
+        this.tags.add(tag);
+    }
+
+    /**
+     * Remove a tag from a restaurant
+     * @param tag
+     */
+    public void removeTag(String tag) {
+        this.tags.remove(tag);
+    }
+
+    /**
+     * @param tag The tag to check
+     * @return true if this restaurant has the tag
+     */
+    public boolean hasTag(String tag) {
+        return this.tags.contains(tag);
     }
 
     @Override

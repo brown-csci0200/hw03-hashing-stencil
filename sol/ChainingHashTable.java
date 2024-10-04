@@ -7,6 +7,7 @@ import src.KeyNotFoundException;
 /**
  * A class that implements hash tables using chaining.
  */
+
 public class ChainingHashTable<K, V> implements IDictionary<K, V> {
 
     /**
@@ -26,10 +27,13 @@ public class ChainingHashTable<K, V> implements IDictionary<K, V> {
         }
     }
 
+    // TODO:  Add data field here!
+
     /**
      * Constructor for hash table
      * @param size Size of the hash table
      */
+    @SuppressWarnings("unchecked")
     public ChainingHashTable(int size) {
 
     }
